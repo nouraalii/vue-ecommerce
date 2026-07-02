@@ -95,17 +95,6 @@
           <span v-else class="text-red-500">Out of stock</span>
         </div>
 
-        <!-- Seller Info -->
-        <div class="mt-8 bg-gray-50 rounded-lg p-4 flex items-center gap-4">
-           <div class="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
-             <img v-if="product.seller?.sellerDetails?.logoUrl" :src="product.seller.sellerDetails.logoUrl" class="w-full h-full object-cover" />
-           </div>
-           <div>
-             <p class="text-xs text-gray-500">Sold by</p>
-             <p class="text-sm font-medium text-gray-900">{{ product.seller?.sellerDetails?.storeName || product.seller?.name || 'Unknown Seller' }}</p>
-           </div>
-        </div>
-
       </div>
     </div>
     

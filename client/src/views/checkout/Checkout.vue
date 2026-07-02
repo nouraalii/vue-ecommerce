@@ -22,11 +22,8 @@
                   <svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
                   <span>Logged in as <strong>{{ user?.email }}</strong></span>
                 </div>
-                <div v-else>
-                  <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
-                  <div class="mt-1">
-                    <input type="email" id="email" v-model="form.email" required class="block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary focus:border-primary sm:text-sm py-2 px-3 border" />
-                  </div>
+                <div v-else class="text-sm text-gray-700">
+                  Please log in before checkout. Orders are linked to your customer account.
                 </div>
               </div>
             </div>
@@ -87,60 +84,10 @@
               <div class="p-6">
                 <div class="space-y-4">
                   <div class="flex items-center">
-                    <input id="payment-stripe" name="payment-method" type="radio" value="stripe" v-model="form.paymentMethod" class="focus:ring-primary h-4 w-4 text-primary border-gray-300" />
-                    <label for="payment-stripe" class="ml-3 block text-sm font-medium text-gray-700">
-                      Credit Card (Stripe)
-                    </label>
-                  </div>
-                  <div class="flex items-center">
-                    <input id="payment-paypal" name="payment-method" type="radio" value="paypal" v-model="form.paymentMethod" class="focus:ring-primary h-4 w-4 text-primary border-gray-300" />
-                    <label for="payment-paypal" class="ml-3 block text-sm font-medium text-gray-700">
-                      PayPal
-                    </label>
-                  </div>
-                  <div class="flex items-center">
                     <input id="payment-cod" name="payment-method" type="radio" value="cod" v-model="form.paymentMethod" class="focus:ring-primary h-4 w-4 text-primary border-gray-300" />
                     <label for="payment-cod" class="ml-3 block text-sm font-medium text-gray-700">
                       Cash on Delivery
                     </label>
-                  </div>
-                </div>
-
-                <div v-if="form.paymentMethod === 'stripe'" class="mt-6 p-5 border border-gray-200 rounded-lg bg-gray-50">
-                  <div class="space-y-4">
-                    <div>
-                      <label for="cardNumber" class="block text-sm font-medium text-gray-700">Card number</label>
-                      <div class="mt-1 relative rounded-md shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4C2.89 4 2 4.89 2 6v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
-                        </div>
-                        <input type="text" id="cardNumber" placeholder="0000 0000 0000 0000" class="block w-full pl-10 sm:text-sm border-gray-300 rounded-md focus:ring-primary focus:border-primary py-2 px-3 border bg-white" />
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none gap-1">
-                          <!-- Visa/MC Mock Icons -->
-                          <div class="w-8 h-5 bg-blue-600 rounded text-white text-[8px] font-bold flex items-center justify-center italic">VISA</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                      <div>
-                        <label for="expiry" class="block text-sm font-medium text-gray-700">Expiration date</label>
-                        <input type="text" id="expiry" placeholder="MM/YY" class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md focus:ring-primary focus:border-primary py-2 px-3 border bg-white" />
-                      </div>
-                      <div>
-                        <label for="cvc" class="block text-sm font-medium text-gray-700">CVC</label>
-                        <input type="text" id="cvc" placeholder="123" class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md focus:ring-primary focus:border-primary py-2 px-3 border bg-white" />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label for="nameOnCard" class="block text-sm font-medium text-gray-700">Name on card</label>
-                      <input type="text" id="nameOnCard" placeholder="John Doe" class="mt-1 block w-full sm:text-sm border-gray-300 rounded-md focus:ring-primary focus:border-primary py-2 px-3 border bg-white" />
-                    </div>
-                    <p class="text-xs text-gray-500 flex items-center mt-2">
-                      <svg class="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path></svg>
-                      Payments are secure and encrypted.
-                    </p>
                   </div>
                 </div>
               </div>
@@ -198,10 +145,9 @@
                 <dd class="text-sm font-medium">-${{ discountAmount.toFixed(2) }}</dd>
               </div>
 
-              <div class="flex items-center justify-between pt-4">
               <div class="flex items-center justify-between">
                 <dt class="text-gray-600">Shipping</dt>
-                <dd>${{ shippingFee.toFixed(2) }}</dd>
+                <dd>${{ shippingPrice.toFixed(2) }}</dd>
               </div>
               <div class="flex items-center justify-between">
                 <dt class="text-gray-600">Taxes</dt>
@@ -236,7 +182,7 @@ const user = computed(() => store.getters['auth/user']);
 const cartItems = computed(() => store.getters['cart/cartItems']);
 const subtotal = computed(() => store.getters['cart/cartSubtotal']);
 const tax = computed(() => store.getters['cart/cartTax']);
-const shippingFee = computed(() => store.getters['cart/shippingFee']);
+const shippingPrice = computed(() => store.getters['cart/shippingPrice']);
 const total = computed(() => store.getters['cart/cartTotal']);
 
 const loading = ref(false);
@@ -250,7 +196,7 @@ const form = reactive({
     postalCode: '',
     country: 'US'
   },
-  paymentMethod: 'stripe'
+  paymentMethod: 'cod'
 });
 
 const promoCode = ref('');
@@ -264,9 +210,9 @@ const applyPromo = async () => {
   if (!promoCode.value) return;
   applyingPromo.value = true;
   try {
-    const response = await OrderService.validatePromo(promoCode.value);
-    store.dispatch('cart/applyPromo', response.data.data ? response.data.data.promo : response.data);
-    toast.success('Promo code applied!');
+    const response = await OrderService.validatePromo(promoCode.value, subtotal.value);
+    store.dispatch('cart/applyPromo', response.data);
+    toast.success(`Promo code ${response.data.code} applied.`);
     promoCode.value = '';
   } catch (err) {
     toast.error(err.response?.data?.message || 'Invalid promo code');
@@ -299,9 +245,8 @@ const placeOrder = async () => {
       shippingAddress: form.shippingAddress,
       paymentMethod: form.paymentMethod,
       taxPrice: tax.value,
-      shippingPrice: shippingFee.value,
+      shippingPrice: shippingPrice.value,
       promoCode: appliedPromo.value ? appliedPromo.value.code : null,
-      discountAmount: discountAmount.value
     };
 
     const response = await OrderService.createOrder(orderData);

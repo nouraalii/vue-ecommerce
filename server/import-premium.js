@@ -1,10 +1,9 @@
-require('dotenv').config();
-const mongoose = require('mongoose');
-const User = require('./src/modules/users/user.model');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+const connectDB = require('./src/config/db');
 const Category = require('./src/modules/products/category.model');
 const Product = require('./src/modules/products/product.model');
-
-mongoose.connect(process.env.MONGO_URI);
 
 const premiumProducts = [
   { title: "Nike Air Max 270", category: "Footwear", price: 150, image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80", description: "Classic Air Max style with the largest Max Air unit yet." },
@@ -21,7 +20,7 @@ const premiumProducts = [
 
 const importData = async () => {
   try {
-    const seller = await User.findOne({ role: 'seller' });
+    await connectDB();
     
     for (const prod of premiumProducts) {
       let cat = await Category.findOne({ name: prod.category });
@@ -33,7 +32,6 @@ const importData = async () => {
         title: prod.title,
         slug: prod.title.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase(),
         description: prod.description,
-        seller: seller._id,
         category: cat._id,
         images: [{ url: prod.image, alt: prod.title }],
         basePrice: prod.price,

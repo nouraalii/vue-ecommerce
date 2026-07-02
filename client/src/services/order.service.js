@@ -16,8 +16,8 @@ class OrderService {
     return response.data;
   }
 
-  async validatePromo(code) {
-    const response = await api.post('/orders/validate-promo', { code });
+  async validatePromo(code, subTotal = 0) {
+    const response = await api.post('/orders/validate-promo', { code, subTotal });
     return response.data;
   }
 }

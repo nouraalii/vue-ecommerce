@@ -33,6 +33,7 @@
                   :class="{
                     'bg-yellow-100 text-yellow-800': order.orderStatus === 'placed',
                     'bg-blue-100 text-blue-800': order.orderStatus === 'processing',
+                    'bg-cyan-100 text-cyan-800': order.orderStatus === 'partially_shipped',
                     'bg-indigo-100 text-indigo-800': order.orderStatus === 'shipped',
                     'bg-green-100 text-green-800': order.orderStatus === 'delivered',
                     'bg-red-100 text-red-800': order.orderStatus === 'cancelled'
@@ -79,11 +80,12 @@
             <!-- Totals -->
             <div class="bg-surfaceAlt rounded-2xl p-6 flex flex-col sm:flex-row sm:justify-end">
                <div class="w-full sm:w-1/2 lg:w-1/3 space-y-3 text-sm font-medium text-gray-500">
-                  <div class="flex justify-between"><span>Subtotal</span><span class="text-gray-900">${{ order.subTotal.toFixed(2) }}</span></div>
-                  <div class="flex justify-between"><span>Shipping</span><span class="text-gray-900">${{ order.shippingFee.toFixed(2) }}</span></div>
-                  <div class="flex justify-between"><span>Tax</span><span class="text-gray-900">${{ order.tax.toFixed(2) }}</span></div>
+                  <div class="flex justify-between"><span>Subtotal</span><span class="text-gray-900">${{ Number(order.subTotal || 0).toFixed(2) }}</span></div>
+                  <div class="flex justify-between"><span>Shipping</span><span class="text-gray-900">${{ (order.shippingPrice || 0).toFixed(2) }}</span></div>
+                  <div v-if="order.discountAmount" class="flex justify-between text-green-600"><span>Discount</span><span>-${{ Number(order.discountAmount || 0).toFixed(2) }}</span></div>
+                  <div class="flex justify-between"><span>Tax</span><span class="text-gray-900">${{ Number(order.tax || 0).toFixed(2) }}</span></div>
                   <div class="flex justify-between border-t border-gray-200 pt-4 mt-2 text-lg font-black text-gray-900">
-                    <span>Total</span><span class="text-primary">${{ order.totalAmount.toFixed(2) }}</span>
+                    <span>Total</span><span class="text-primary">${{ Number(order.totalAmount || 0).toFixed(2) }}</span>
                   </div>
                </div>
             </div>

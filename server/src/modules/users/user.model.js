@@ -6,7 +6,7 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String }, // Optional if using Google OAuth
   googleId: { type: String },
-  role: { type: String, enum: ['customer', 'seller', 'admin'], default: 'customer' },
+  role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
   phone: { type: String },
   isEmailVerified: { type: Boolean, default: false },
   
@@ -25,14 +25,6 @@ const UserSchema = new mongoose.Schema({
     isDefault: Boolean
   }],
 
-  // Role-specific extensions (Seller Profile)
-  sellerDetails: {
-    storeName: { type: String }, // Required if role === 'seller'
-    description: String,
-    logoUrl: String,
-    status: { type: String, enum: ['pending', 'approved', 'rejected', 'suspended'], default: 'pending' },
-  },
-
   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   savedPaymentMethods: [{ /* Payment Method IDs */ }]
 }, { timestamps: true });
@@ -42,7 +34,8 @@ UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
     next();
   }
-  const salt = await bcrypt.genSalt(10);
+  const saltRounds = Number(process.env.SALT_ROUNDS) || 10;
+  const salt = await bcrypt.genSalt(saltRounds);
   this.password = await bcrypt.hash(this.password, salt);
 });
 

@@ -168,8 +168,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
 import { useToast } from 'vue-toastification';
-import axios from 'axios';
 import ProductCard from '../../components/common/ProductCard.vue';
+import OrderService from '../../services/order.service';
 
 const store = useStore();
 const toast = useToast();
@@ -190,13 +190,10 @@ const applyPromo = async () => {
   try {
     promoError.value = '';
     loadingPromo.value = true;
-    const response = await axios.post('/api/v1/promos/validate', {
-      code: promoCode.value,
-      cartTotal: subtotal.value
-    });
+    const response = await OrderService.validatePromo(promoCode.value, subtotal.value);
     
-    store.dispatch('cart/applyPromo', response.data.data.promo);
-    toast.success(`Promo code applied! ${response.data.data.promo.discountValue}% off.`);
+    store.dispatch('cart/applyPromo', response.data);
+    toast.success(`Promo code ${response.data.code} applied.`);
     promoCode.value = '';
   } catch (error) {
     promoError.value = error.response?.data?.message || 'Invalid promo code';
