@@ -4,7 +4,7 @@
       <template #header>
         <div class="text-center">
           <h2 class="text-2xl font-bold text-gray-900">Create an Account</h2>
-          <p class="text-sm text-gray-500 mt-1">Join our marketplace today</p>
+          <p class="text-sm text-gray-500 mt-1">Create your customer account</p>
         </div>
       </template>
 
@@ -37,21 +37,6 @@
           hint="Must be at least 6 characters."
           required
         />
-        
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Account Type <span class="text-red-500">*</span></label>
-          <div class="flex space-x-4">
-            <label class="flex items-center">
-              <input type="radio" value="customer" v-model="role" class="text-primary focus:ring-primary border-gray-300" />
-              <span class="ml-2 text-sm text-gray-700">Customer</span>
-            </label>
-            <label class="flex items-center">
-              <input type="radio" value="seller" v-model="role" class="text-primary focus:ring-primary border-gray-300" />
-              <span class="ml-2 text-sm text-gray-700">Seller</span>
-            </label>
-          </div>
-        </div>
-
         <Button type="submit" class="w-full" :loading="loading">
           Sign Up
         </Button>
@@ -84,7 +69,6 @@ const toast = useToast();
 const name = ref('');
 const email = ref('');
 const password = ref('');
-const role = ref('customer');
 const errors = ref({});
 const loading = ref(false);
 
@@ -110,14 +94,10 @@ const handleRegister = async () => {
     const data = await store.dispatch('auth/register', { 
       name: name.value, 
       email: email.value, 
-      password: password.value,
-      role: role.value
+      password: password.value
     });
     toast.success('Account created successfully!');
-    
-    // Redirect based on role
-    if (data.user.role === 'seller') router.push('/seller/dashboard');
-    else router.push('/customer/dashboard');
+    router.push('/customer/dashboard');
     
   } catch (err) {
     toast.error(err.response?.data?.message || 'Failed to register');

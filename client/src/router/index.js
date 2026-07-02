@@ -18,14 +18,25 @@ const routes = [
     component: () => import('../views/shop/Cart.vue'),
   },
   {
+    path: '/dashboard',
+    name: 'DashboardRedirect',
+    redirect: () => {
+      const role = store.getters['auth/role'];
+      return role === 'admin' ? '/admin/dashboard' : '/customer/dashboard';
+    },
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/checkout',
     name: 'Checkout',
     component: () => import('../views/checkout/Checkout.vue'),
+    meta: { requiresAuth: true, role: 'customer' }
   },
   {
     path: '/order-success/:id',
     name: 'OrderSuccess',
     component: () => import('../views/checkout/OrderSuccess.vue'),
+    meta: { requiresAuth: true, role: 'customer' }
   },
   {
     path: '/customer/dashboard',
@@ -38,12 +49,6 @@ const routes = [
     name: 'AdminDashboard',
     component: () => import('../views/dashboards/AdminDashboard.vue'),
     meta: { requiresAuth: true, role: 'admin' }
-  },
-  {
-    path: '/seller/dashboard',
-    name: 'SellerDashboard',
-    component: () => import('../views/dashboards/SellerDashboard.vue'),
-    meta: { requiresAuth: true, role: 'seller' }
   },
   {
     path: '/wishlist',
@@ -69,19 +74,29 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   const isLoggedIn = store.getters['auth/isLoggedIn'];
   const userRole = store.getters['auth/role'];
+  const dashboardForRole = role => role === 'admin' ? '/admin/dashboard' : '/customer/dashboard';
 
   if (to.meta.requiresAuth && !isLoggedIn) {
-    next('/login');
-  } else if (to.meta.guest && isLoggedIn) {
-    next('/'); // Or redirect to specific dashboard based on role
-  } else if (to.meta.role && to.meta.role !== userRole) {
-    next('/'); // Not authorized for this role
-  } else {
-    next();
+    return '/login';
   }
+
+  if (isLoggedIn && !['customer', 'admin'].includes(userRole)) {
+    store.dispatch('auth/logout');
+    return '/login';
+  }
+
+  if (to.meta.guest && isLoggedIn) {
+    return dashboardForRole(userRole);
+  }
+
+  if (to.meta.role && to.meta.role !== userRole) {
+    return dashboardForRole(userRole);
+  }
+
+  return true;
 });
 
 export default router;

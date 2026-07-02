@@ -1,15 +1,15 @@
 const User = require('../users/user.model');
 const jwt = require('jsonwebtoken');
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+const generateToken = (user) => {
+  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, role, phone } = req.body;
+    const { name, email, password, phone } = req.body;
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -20,11 +20,11 @@ exports.register = async (req, res) => {
       name,
       email,
       password,
-      role: role || 'customer',
+      role: 'customer',
       phone
     });
 
-    const token = generateToken(user._id);
+    const token = generateToken(user);
 
     res.status(201).json({
       success: true,
@@ -59,7 +59,7 @@ exports.login = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Your account is restricted or deleted' });
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user);
 
     res.status(200).json({
       success: true,

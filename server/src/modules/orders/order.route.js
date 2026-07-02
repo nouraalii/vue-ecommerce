@@ -1,12 +1,13 @@
 const express = require('express');
-const { createOrder, getMyOrders, getOrderById, validatePromo } = require('./order.controller');
-const { protect } = require('../../middlewares/auth.middleware');
+const { createOrder, getMyOrders, getOrderById, validatePromo, getOrders, updateOrderStatus } = require('./order.controller');
+const { protect, authorize } = require('../../middlewares/auth.middleware');
 
 const router = express.Router();
 
 router.route('/validate-promo').post(validatePromo);
 
 router.route('/')
+  .get(protect, authorize('admin'), getOrders)
   .post(protect, createOrder);
 
 router.route('/myorders')
@@ -14,5 +15,8 @@ router.route('/myorders')
 
 router.route('/:id')
   .get(protect, getOrderById);
+
+router.route('/:id/status')
+  .put(protect, authorize('admin'), updateOrderStatus);
 
 module.exports = router;

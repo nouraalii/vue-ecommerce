@@ -86,8 +86,8 @@
     <!-- 3. Features Section -->
     <FeaturesSection />
 
-    <!-- 4. Best Sellers Section -->
-    <BestSellersSection :products="products" @add-to-cart="addToCart" />
+    <!-- 4. Featured Products Section -->
+    <FeaturedProductsSection :products="products" @add-to-cart="addToCart" />
 
   </div>
 </template>
@@ -100,7 +100,7 @@ import ProductCard from '../../components/common/ProductCard.vue';
 import HeroSection from '../../components/shop/HeroSection.vue';
 import CategoryTabs from '../../components/shop/CategoryTabs.vue';
 import FeaturesSection from '../../components/shop/FeaturesSection.vue';
-import BestSellersSection from '../../components/shop/BestSellersSection.vue';
+import FeaturedProductsSection from '../../components/shop/FeaturedProductsSection.vue';
 
 const store = useStore();
 const toast = useToast();

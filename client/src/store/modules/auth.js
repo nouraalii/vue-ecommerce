@@ -3,8 +3,18 @@ import AuthService from '../../services/auth.service';
 const user = JSON.parse(localStorage.getItem('user'));
 const token = localStorage.getItem('token');
 
+const normalizeUser = userData => {
+  if (!userData) return null;
+
+  return {
+    ...userData,
+    id: userData.id || userData._id,
+    role: userData.role || 'customer'
+  };
+};
+
 const initialState = user
-  ? { status: { loggedIn: true }, user, token }
+  ? { status: { loggedIn: true }, user: normalizeUser(user), token }
   : { status: { loggedIn: false }, user: null, token: null };
 
 export const auth = {
@@ -38,27 +48,41 @@ export const auth = {
   },
   mutations: {
     loginSuccess(state, data) {
+      const user = normalizeUser(data.user);
       state.status.loggedIn = true;
-      state.user = data.user;
+      state.user = user;
       state.token = data.token;
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('token', data.token);
     },
     loginFailure(state) {
       state.status.loggedIn = false;
       state.user = null;
       state.token = null;
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
     },
     logout(state) {
       state.status.loggedIn = false;
       state.user = null;
       state.token = null;
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
     },
     registerSuccess(state, data) {
+      const user = normalizeUser(data.user);
       state.status.loggedIn = true;
-      state.user = data.user;
+      state.user = user;
       state.token = data.token;
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('token', data.token);
     },
     registerFailure(state) {
       state.status.loggedIn = false;
+      state.user = null;
+      state.token = null;
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
     }
   },
   getters: {

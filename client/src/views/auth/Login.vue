@@ -93,9 +93,7 @@ const handleLogin = async () => {
     const data = await store.dispatch('auth/login', { email: email.value, password: password.value });
     toast.success('Successfully logged in!');
     
-    // Redirect based on role
     if (data.user.role === 'admin') router.push('/admin/dashboard');
-    else if (data.user.role === 'seller') router.push('/seller/dashboard');
     else router.push('/customer/dashboard');
     
   } catch (err) {

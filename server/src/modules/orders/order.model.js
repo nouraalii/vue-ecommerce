@@ -5,7 +5,6 @@ const OrderSchema = new mongoose.Schema({
   
   items: [{
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
-    seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     variantId: mongoose.Schema.Types.ObjectId,
     name: String, 
     price: Number, 
@@ -16,7 +15,6 @@ const OrderSchema = new mongoose.Schema({
   // Cost breakdown
   subTotal: { type: Number, required: true },
   tax: { type: Number, default: 0 },
-  taxPrice: { type: Number, default: 0.0 },
   shippingPrice: { type: Number, default: 0.0 },
   promoCode: { type: String },
   discountAmount: { type: Number, default: 0.0 },
@@ -32,7 +30,7 @@ const OrderSchema = new mongoose.Schema({
     zipCode: String,
     country: String,
   },
-  paymentMethod: { type: String, enum: ['card', 'paypal', 'cod'], required: true },
+  paymentMethod: { type: String, enum: ['cod'], required: true },
   paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending' },
   paymentProviderRef: String, // Stripe PaymentIntent ID, PayPal order ID, etc.
 

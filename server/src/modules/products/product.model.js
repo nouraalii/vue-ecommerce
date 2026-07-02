@@ -4,17 +4,16 @@ const ProductSchema = new mongoose.Schema({
   title: { type: String, required: true, text: true }, // Text index for name search
   slug: { type: String, required: true, unique: true },
   description: { type: String, required: true },
-  seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
   brand: String,
-  
+
   images: [{ url: String, alt: String }], // First image is primary
-  
+
   // Pricing & Inventory
   basePrice: { type: Number, required: true },
   compareAtPrice: Number,
   stock: { type: Number, default: 0 },
-  
+
   // Variants
   variants: [{
     name: String,
@@ -26,7 +25,7 @@ const ProductSchema = new mongoose.Schema({
   // Metadata
   status: { type: String, enum: ['draft', 'pending_approval', 'active', 'rejected', 'archived'], default: 'pending_approval' },
   tags: { type: [String], index: true }, // Index for tags search
-  
+
   // Denormalized stats
   averageRating: { type: Number, default: 0 },
   reviewCount: { type: Number, default: 0 }

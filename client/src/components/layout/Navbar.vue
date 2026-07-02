@@ -12,6 +12,8 @@
             <router-link to="/" class="hover:text-primary transition-colors">Shop</router-link>
             <router-link to="/" class="hover:text-primary transition-colors">New Arrival</router-link>
             <router-link to="/" class="hover:text-primary transition-colors">Blog</router-link>
+            <router-link v-if="isAdmin" to="/admin/dashboard" class="hover:text-primary transition-colors">Admin Dashboard</router-link>
+            <router-link v-if="isCustomer" to="/customer/dashboard" class="hover:text-primary transition-colors">Customer Dashboard</router-link>
           </div>
         </div>
 
@@ -60,8 +62,10 @@
               <div class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden border border-gray-100">
                 <div class="px-4 py-2 border-b border-gray-50 mb-1">
                   <p class="text-sm font-medium text-gray-900 truncate">{{ user?.name }}</p>
+                  <p class="text-xs text-gray-500 capitalize">{{ userRole }}</p>
                 </div>
-                <router-link :to="dashboardRoute" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Dashboard</router-link>
+                <router-link v-if="isAdmin" to="/admin/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Admin Dashboard</router-link>
+                <router-link v-if="isCustomer" to="/customer/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Customer Dashboard</router-link>
                 <a href="#" @click.prevent="handleLogout" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Sign out</a>
               </div>
             </div>
@@ -82,6 +86,9 @@ const router = useRouter();
 
 const isLoggedIn = computed(() => store.getters['auth/isLoggedIn']);
 const user = computed(() => store.getters['auth/user']);
+const userRole = computed(() => store.getters['auth/role']);
+const isAdmin = computed(() => userRole.value === 'admin');
+const isCustomer = computed(() => userRole.value === 'customer');
 const cartItemCount = computed(() => store.getters['cart/itemCount']);
 const wishlistCount = computed(() => store.getters['wishlist/wishlistCount']);
 
@@ -92,13 +99,6 @@ const toggleCart = () => {
 const userInitials = computed(() => {
   if (!user.value?.name) return '?';
   return user.value.name.substring(0, 2);
-});
-
-const dashboardRoute = computed(() => {
-  if (!user.value) return '/';
-  if (user.value.role === 'admin') return '/admin/dashboard';
-  if (user.value.role === 'seller') return '/seller/dashboard';
-  return '/customer/dashboard';
 });
 
 // Debounced Search logic

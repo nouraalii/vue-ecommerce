@@ -28,14 +28,17 @@ exports.getProducts = async (req, res) => {
       parsedQuery.$text = { $search: req.query.keyword };
     }
 
-    // Default to active products only unless admin/seller
-    // (A more robust platform would handle this via route guards, keeping it simple here)
+    if (parsedQuery.status === 'all') {
+      delete parsedQuery.status;
+    }
+
+    // Default to active products only
     if (!parsedQuery.status) {
       parsedQuery.status = 'active';
     }
 
     // Finding resource
-    query = Product.find(parsedQuery).populate('category', 'name slug').populate('seller', 'name sellerDetails.storeName');
+    query = Product.find(parsedQuery).populate('category', 'name slug');
 
     // Select Fields
     if (req.query.select) {
@@ -84,14 +87,54 @@ exports.getProducts = async (req, res) => {
   }
 };
 
+// @desc    Update product
+// @route   PUT /api/v1/products/:id
+// @access  Private/Admin
+exports.updateProduct = async (req, res) => {
+  try {
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+    }).populate('category', 'name slug');
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    res.status(200).json({ success: true, data: product });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// @desc    Archive product
+// @route   DELETE /api/v1/products/:id
+// @access  Private/Admin
+exports.archiveProduct = async (req, res) => {
+  try {
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      { status: 'archived' },
+      { new: true, runValidators: true }
+    ).populate('category', 'name slug');
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    res.status(200).json({ success: true, data: product });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 // @desc    Get single product
 // @route   GET /api/v1/products/:id
 // @access  Public
 exports.getProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
-      .populate('category', 'name slug')
-      .populate('seller', 'name sellerDetails.storeName sellerDetails.logoUrl');
+      .populate('category', 'name slug');
       
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
@@ -104,12 +147,9 @@ exports.getProduct = async (req, res) => {
 
 // @desc    Create product
 // @route   POST /api/v1/products
-// @access  Private/Seller
+// @access  Private/Admin
 exports.createProduct = async (req, res) => {
   try {
-    // Add seller ID from token
-    req.body.seller = req.user.id;
-
     const product = await Product.create(req.body);
 
     res.status(201).json({ success: true, data: product });
