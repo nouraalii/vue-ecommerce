@@ -75,7 +75,7 @@ export const cart = {
     },
     clearItems(state) {
       state.items = [];
-      localStorage.setItem('cart', JSON.stringify(state.items));
+      localStorage.removeItem('cart');
     },
     toggleDrawer(state) {
       state.isDrawerOpen = !state.isDrawerOpen;

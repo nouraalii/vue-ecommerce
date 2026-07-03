@@ -13,7 +13,7 @@ const normalizeUser = userData => {
   };
 };
 
-const initialState = user
+const initialState = user && token
   ? { status: { loggedIn: true }, user: normalizeUser(user), token }
   : { status: { loggedIn: false }, user: null, token: null };
 
@@ -21,24 +21,28 @@ export const auth = {
   namespaced: true,
   state: initialState,
   actions: {
-    async login({ commit }, user) {
+    async login({ commit, dispatch }, user) {
       try {
         const data = await AuthService.login(user);
         commit('loginSuccess', data);
+        dispatch('wishlist/fetchWishlist', null, { root: true }).catch(() => {});
         return Promise.resolve(data);
       } catch (error) {
         commit('loginFailure');
         return Promise.reject(error);
       }
     },
-    logout({ commit }) {
+    logout({ commit, dispatch }) {
       AuthService.logout();
+      dispatch('cart/clearCart', null, { root: true });
+      dispatch('wishlist/clearWishlist', null, { root: true });
       commit('logout');
     },
-    async register({ commit }, user) {
+    async register({ commit, dispatch }, user) {
       try {
         const data = await AuthService.register(user);
         commit('registerSuccess', data);
+        dispatch('wishlist/fetchWishlist', null, { root: true }).catch(() => {});
         return Promise.resolve(data);
       } catch (error) {
         commit('registerFailure');
@@ -54,6 +58,7 @@ export const auth = {
       state.token = data.token;
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('token', data.token);
+      localStorage.removeItem('wishlist');
     },
     loginFailure(state) {
       state.status.loggedIn = false;
@@ -76,6 +81,7 @@ export const auth = {
       state.token = data.token;
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('token', data.token);
+      localStorage.removeItem('wishlist');
     },
     registerFailure(state) {
       state.status.loggedIn = false;

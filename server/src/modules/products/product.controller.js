@@ -28,12 +28,14 @@ exports.getProducts = async (req, res) => {
       parsedQuery.$text = { $search: req.query.keyword };
     }
 
-    if (parsedQuery.status === 'all') {
+    const includeAllStatuses = parsedQuery.status === 'all';
+
+    if (includeAllStatuses) {
       delete parsedQuery.status;
     }
 
     // Default to active products only
-    if (!parsedQuery.status) {
+    if (!includeAllStatuses && !parsedQuery.status) {
       parsedQuery.status = 'active';
     }
 

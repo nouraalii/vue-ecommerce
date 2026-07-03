@@ -172,7 +172,8 @@ const discount = computed(() => {
   return Math.round(((props.product.compareAtPrice - props.product.basePrice) / props.product.compareAtPrice) * 100);
 });
 
-const isInWishlist = computed(() => store.getters['wishlist/isInWishlist'](props.product._id));
+const productId = computed(() => props.product._id || props.product.id);
+const isInWishlist = computed(() => store.getters['wishlist/isInWishlist'](productId.value));
 const imageUrl = computed(() => props.product.images?.[0]?.url || 'https://placehold.co/800x800?text=No+Image');
 const categoryName = computed(() => props.product.category?.name || 'Uncategorized');
 const hasRating = computed(() => Boolean(props.product.averageRating || props.product.reviewCount));
@@ -213,13 +214,20 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleEscape);
 });
 
-const toggleWishlist = () => {
-  const wasInWishlist = isInWishlist.value;
-  store.dispatch('wishlist/toggleWishlist', props.product);
-  if (wasInWishlist) {
-    toast.info('Removed from wishlist');
-  } else {
-    toast.success('Added to wishlist');
+const toggleWishlist = async () => {
+  try {
+    const result = await store.dispatch('wishlist/toggleWishlist', props.product);
+    if (result.added) {
+      toast.success('Added to wishlist');
+    } else {
+      toast.info('Removed from wishlist');
+    }
+  } catch (error) {
+    if (error.code === 'LOGIN_REQUIRED') {
+      toast.info('Please log in to use your wishlist');
+    } else {
+      toast.error('Failed to update wishlist');
+    }
   }
 };
 

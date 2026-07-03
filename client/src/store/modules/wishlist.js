@@ -1,28 +1,56 @@
+import WishlistService from '../../services/wishlist.service';
+
 export const wishlist = {
   namespaced: true,
   state: {
-    wishlistItems: JSON.parse(localStorage.getItem('wishlist')) || []
+    wishlistItems: []
   },
   mutations: {
-    TOGGLE_WISHLIST(state, product) {
-      const index = state.wishlistItems.findIndex(item => item._id === product._id);
-      if (index !== -1) {
-        state.wishlistItems.splice(index, 1);
-      } else {
-        state.wishlistItems.push(product);
-      }
-      localStorage.setItem('wishlist', JSON.stringify(state.wishlistItems));
+    SET_WISHLIST(state, products) {
+      state.wishlistItems = products || [];
+      localStorage.removeItem('wishlist');
     },
     CLEAR_WISHLIST(state) {
       state.wishlistItems = [];
-      localStorage.setItem('wishlist', JSON.stringify(state.wishlistItems));
+      localStorage.removeItem('wishlist');
     }
   },
   actions: {
-    toggleWishlist({ commit }, product) {
-      commit('TOGGLE_WISHLIST', product);
+    async fetchWishlist({ commit, rootGetters }) {
+      if (!rootGetters['auth/isLoggedIn']) {
+        commit('CLEAR_WISHLIST');
+        return [];
+      }
+
+      const response = await WishlistService.getWishlist();
+      commit('SET_WISHLIST', response.data);
+      return response.data;
     },
-    clearWishlist({ commit }) {
+    async toggleWishlist({ commit, getters, rootGetters }, product) {
+      if (!rootGetters['auth/isLoggedIn']) {
+        const error = new Error('Please log in to use your wishlist');
+        error.code = 'LOGIN_REQUIRED';
+        throw error;
+      }
+
+      const productId = product._id || product.id;
+      if (!productId) {
+        throw new Error('Product id is required');
+      }
+
+      const wasInWishlist = getters.isInWishlist(productId);
+      const response = wasInWishlist
+        ? await WishlistService.removeFromWishlist(productId)
+        : await WishlistService.addToWishlist(productId);
+
+      commit('SET_WISHLIST', response.data);
+      return { added: !wasInWishlist, items: response.data };
+    },
+    async clearWishlist({ commit, rootGetters }, options = {}) {
+      options = options || {};
+      if (options.remote && rootGetters['auth/isLoggedIn']) {
+        await WishlistService.clearWishlist();
+      }
       commit('CLEAR_WISHLIST');
     }
   },
@@ -30,7 +58,7 @@ export const wishlist = {
     wishlistItems: (state) => state.wishlistItems,
     wishlistCount: (state) => state.wishlistItems.length,
     isInWishlist: (state) => (productId) => {
-      return state.wishlistItems.some(item => item._id === productId);
+      return state.wishlistItems.some(item => (item._id || item.id) === productId);
     }
   }
 };

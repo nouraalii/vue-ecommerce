@@ -69,8 +69,8 @@
                 <td class="px-8 py-5 capitalize">{{ user.accountStatus }}</td>
                 <td class="px-8 py-5 text-right space-x-3">
                   <button v-if="user.accountStatus !== 'active'" @click="updateUserStatus(user._id, 'active')" class="text-green-600 font-bold">Activate</button>
-                  <button v-if="user.accountStatus !== 'restricted'" @click="updateUserStatus(user._id, 'restricted')" class="text-yellow-600 font-bold">Restrict</button>
-                  <button v-if="user.accountStatus !== 'deleted'" @click="updateUserStatus(user._id, 'deleted')" class="text-red-600 font-bold">Delete</button>
+                  <button v-if="user.accountStatus !== 'restricted' && !isCurrentUser(user)" @click="updateUserStatus(user._id, 'restricted')" class="text-yellow-600 font-bold">Restrict</button>
+                  <button v-if="user.accountStatus !== 'deleted' && !isCurrentUser(user)" @click="updateUserStatus(user._id, 'deleted')" class="text-red-600 font-bold">Delete</button>
                 </td>
               </tr>
             </tbody>
@@ -261,9 +261,11 @@
 <script setup>
 import { computed, reactive, ref, onMounted } from 'vue';
 import { useToast } from 'vue-toastification';
+import { useStore } from 'vuex';
 import AdminService from '../../services/admin.service';
 
 const toast = useToast();
+const store = useStore();
 const loading = ref(true);
 const metrics = ref({ totalSales: 0, totalUsers: 0, totalProducts: 0, totalOrders: 0 });
 const users = ref([]);
@@ -306,6 +308,7 @@ const emptyCategory = () => ({
 const productForm = reactive(emptyProduct());
 const categoryForm = reactive(emptyCategory());
 const activeCategories = computed(() => categories.value.filter(category => (category.status || 'active') === 'active'));
+const currentUser = computed(() => store.getters['auth/user']);
 
 const shortId = id => id.substring(id.length - 8).toUpperCase();
 
@@ -350,6 +353,11 @@ const fetchUsers = async () => {
   }
 };
 
+const isCurrentUser = user => {
+  const currentUserId = currentUser.value?._id || currentUser.value?.id;
+  return Boolean(currentUserId && user._id === currentUserId);
+};
+
 const refreshProducts = async () => {
   const response = await AdminService.getProducts({ status: 'all', limit: 200 });
   products.value = response.data;
@@ -372,7 +380,7 @@ const updateUserStatus = async (id, status) => {
     toast.success(`User status updated to ${status}`);
     await fetchUsers();
   } catch (error) {
-    toast.error('Failed to update user status');
+    toast.error(error.response?.data?.message || 'Failed to update user status');
   }
 };
 
