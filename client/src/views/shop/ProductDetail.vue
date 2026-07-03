@@ -84,8 +84,8 @@
           <button @click="addToCart" class="flex-1 bg-primary border border-transparent rounded-lg py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all shadow-sm hover:shadow active:scale-95">
             Add to bag
           </button>
-          <button class="p-3 border border-gray-300 rounded-lg text-gray-400 hover:text-red-500 hover:border-red-500 hover:bg-red-50 transition-all">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+          <button @click="toggleWishlist" class="p-3 border rounded-lg transition-all" :class="isInWishlist ? 'border-red-500 bg-red-50 text-red-500' : 'border-gray-300 text-gray-400 hover:text-red-500 hover:border-red-500 hover:bg-red-50'">
+            <svg class="w-6 h-6" :class="isInWishlist ? 'fill-current' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
           </button>
         </div>
         
@@ -106,7 +106,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import ProductService from '../../services/product.service';
@@ -120,6 +120,10 @@ const toast = useToast();
 const product = ref(null);
 const loading = ref(true);
 const quantity = ref(1);
+
+const isInWishlist = computed(() => {
+  return product.value ? store.getters['wishlist/isInWishlist'](product.value._id) : false;
+});
 
 onMounted(async () => {
   try {
@@ -135,5 +139,18 @@ onMounted(async () => {
 const addToCart = () => {
   store.dispatch('cart/addToCart', { product: product.value, quantity: quantity.value });
   toast.success(`Added ${quantity.value} ${product.value.title} to cart`);
+};
+
+const toggleWishlist = () => {
+  if (!product.value) return;
+
+  const wasInWishlist = isInWishlist.value;
+  store.dispatch('wishlist/toggleWishlist', product.value);
+
+  if (wasInWishlist) {
+    toast.info('Removed from wishlist');
+  } else {
+    toast.success('Added to wishlist');
+  }
 };
 </script>
