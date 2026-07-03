@@ -122,7 +122,7 @@ const loading = ref(true);
 const quantity = ref(1);
 
 const isInWishlist = computed(() => {
-  return product.value ? store.getters['wishlist/isInWishlist'](product.value._id) : false;
+  return product.value ? store.getters['wishlist/isInWishlist'](product.value._id || product.value.id) : false;
 });
 
 onMounted(async () => {
@@ -141,16 +141,22 @@ const addToCart = () => {
   toast.success(`Added ${quantity.value} ${product.value.title} to cart`);
 };
 
-const toggleWishlist = () => {
+const toggleWishlist = async () => {
   if (!product.value) return;
 
-  const wasInWishlist = isInWishlist.value;
-  store.dispatch('wishlist/toggleWishlist', product.value);
-
-  if (wasInWishlist) {
-    toast.info('Removed from wishlist');
-  } else {
-    toast.success('Added to wishlist');
+  try {
+    const result = await store.dispatch('wishlist/toggleWishlist', product.value);
+    if (result.added) {
+      toast.success('Added to wishlist');
+    } else {
+      toast.info('Removed from wishlist');
+    }
+  } catch (error) {
+    if (error.code === 'LOGIN_REQUIRED') {
+      toast.info('Please log in to use your wishlist');
+    } else {
+      toast.error('Failed to update wishlist');
+    }
   }
 };
 </script>

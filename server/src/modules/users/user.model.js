@@ -30,9 +30,9 @@ const UserSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Password hashing middleware
-UserSchema.pre('save', async function (next) {
+UserSchema.pre('save', async function () {
   if (!this.isModified('password')) {
-    next();
+    return;
   }
   const saltRounds = Number(process.env.SALT_ROUNDS) || 10;
   const salt = await bcrypt.genSalt(saltRounds);

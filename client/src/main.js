@@ -28,4 +28,8 @@ app.use(Toast, {
   rtl: false
 });
 
+if (store.getters['auth/isLoggedIn']) {
+  store.dispatch('wishlist/fetchWishlist').catch(() => {});
+}
+
 app.mount('#app');

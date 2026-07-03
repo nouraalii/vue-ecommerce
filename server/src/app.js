@@ -14,12 +14,14 @@ const productRoutes = require('./modules/products/product.route');
 const categoryRoutes = require('./modules/products/category.route');
 const orderRoutes = require('./modules/orders/order.route');
 const userRoutes = require('./modules/users/user.route');
+const wishlistRoutes = require('./modules/wishlist/wishlist.route');
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/wishlist', wishlistRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is running...');
