@@ -1,4 +1,7 @@
-const savedCart = JSON.parse(localStorage.getItem('cart')) || [];
+import CartService from '../../services/cart.service';
+
+const getGuestCart = () => JSON.parse(localStorage.getItem('cart')) || [];
+const setGuestCart = (items) => localStorage.setItem('cart', JSON.stringify(items));
 
 const normalizePromo = promo => {
   if (!promo) return null;
@@ -14,38 +17,117 @@ const normalizePromo = promo => {
 export const cart = {
   namespaced: true,
   state: {
-    items: savedCart,
+    items: getGuestCart(), // Starts with guest cart or empty
     isDrawerOpen: false,
     shippingPrice: 10.00,
     taxRate: 0.08,
-    appliedPromo: null
+    appliedPromo: null,
+    loading: false
   },
   actions: {
-    addToCart({ commit, state }, payload) {
-      const { product, quantity = 1, variant = null } = payload;
-      const existingItemIndex = state.items.findIndex(
-        item => item.product._id === product._id && item.variant === variant
-      );
+    async fetchCart({ commit, rootGetters }) {
+      if (rootGetters['auth/isLoggedIn']) {
+        commit('setLoading', true);
+        try {
+          const res = await CartService.getCart();
+          commit('setItems', res.data.items);
+        } catch (error) {
+          console.error('Fetch cart error', error);
+        } finally {
+          commit('setLoading', false);
+        }
+      }
+    },
+    async addToCart({ commit, state, rootGetters }, payload) {
+      const { product, quantity = 1 } = payload;
+      const isLoggedIn = rootGetters['auth/isLoggedIn'];
 
-      if (existingItemIndex !== -1) {
-        commit('updateQuantity', { index: existingItemIndex, quantity: state.items[existingItemIndex].quantity + quantity });
+      if (isLoggedIn) {
+        try {
+          const res = await CartService.addToCart(product._id || product.id, quantity);
+          commit('setItems', res.data.items);
+        } catch (error) {
+          console.error(error);
+        }
       } else {
-        commit('addItem', { product, quantity, variant });
+        const existingItemIndex = state.items.findIndex(item => item.product._id === (product._id || product.id));
+        if (existingItemIndex !== -1) {
+          commit('updateGuestQuantity', { index: existingItemIndex, quantity: state.items[existingItemIndex].quantity + quantity });
+        } else {
+          commit('addGuestItem', { product, quantity });
+        }
       }
       commit('openDrawer');
     },
-    removeFromCart({ commit }, index) {
-      commit('removeItem', index);
-    },
-    updateItemQuantity({ commit }, { index, quantity }) {
-      if (quantity > 0) {
-        commit('updateQuantity', { index, quantity });
+    async removeFromCart({ commit, state, rootGetters }, payload) {
+      const { index, productId } = payload;
+      if (rootGetters['auth/isLoggedIn']) {
+        try {
+          const res = await CartService.removeFromCart(productId);
+          commit('setItems', res.data.items);
+        } catch (error) {
+          console.error(error);
+        }
       } else {
-        commit('removeItem', index);
+        commit('removeGuestItem', index);
       }
     },
-    clearCart({ commit }) {
-      commit('clearItems');
+    async updateItemQuantity({ commit, state, rootGetters }, { index, productId, quantity }) {
+      if (rootGetters['auth/isLoggedIn']) {
+        try {
+          if (quantity > 0) {
+            const res = await CartService.updateCartItem(productId, quantity);
+            commit('setItems', res.data.items);
+          } else {
+            const res = await CartService.removeFromCart(productId);
+            commit('setItems', res.data.items);
+          }
+        } catch (error) {
+          console.error(error);
+        }
+      } else {
+        if (quantity > 0) {
+          commit('updateGuestQuantity', { index, quantity });
+        } else {
+          commit('removeGuestItem', index);
+        }
+      }
+    },
+    async clearCart({ commit, rootGetters }) {
+      if (rootGetters['auth/isLoggedIn']) {
+        try {
+          await CartService.clearCart();
+          commit('setItems', []);
+        } catch (error) {
+          console.error(error);
+        }
+      } else {
+        commit('clearGuestItems');
+      }
+    },
+    async mergeCart({ commit, state, rootGetters }) {
+      if (rootGetters['auth/isLoggedIn']) {
+        const guestItems = getGuestCart().map(item => ({
+          productId: item.product._id || item.product.id,
+          quantity: item.quantity
+        }));
+        
+        if (guestItems.length > 0) {
+          try {
+            const res = await CartService.mergeCart(guestItems);
+            commit('setItems', res.data.items);
+            commit('clearGuestItems');
+          } catch (error) {
+            console.error(error);
+          }
+        } else {
+          // just fetch
+          try {
+            const res = await CartService.getCart();
+            commit('setItems', res.data.items);
+          } catch(e) {}
+        }
+      }
     },
     toggleDrawer({ commit }) {
       commit('toggleDrawer');
@@ -61,19 +143,25 @@ export const cart = {
     }
   },
   mutations: {
-    addItem(state, item) {
+    setLoading(state, status) {
+      state.loading = status;
+    },
+    setItems(state, items) {
+      state.items = items;
+    },
+    addGuestItem(state, item) {
       state.items.push(item);
-      localStorage.setItem('cart', JSON.stringify(state.items));
+      setGuestCart(state.items);
     },
-    updateQuantity(state, { index, quantity }) {
+    updateGuestQuantity(state, { index, quantity }) {
       state.items[index].quantity = quantity;
-      localStorage.setItem('cart', JSON.stringify(state.items));
+      setGuestCart(state.items);
     },
-    removeItem(state, index) {
+    removeGuestItem(state, index) {
       state.items.splice(index, 1);
-      localStorage.setItem('cart', JSON.stringify(state.items));
+      setGuestCart(state.items);
     },
-    clearItems(state) {
+    clearGuestItems(state) {
       state.items = [];
       localStorage.removeItem('cart');
     },
@@ -96,7 +184,7 @@ export const cart = {
   getters: {
     cartItems: state => state.items,
     itemCount: state => state.items.reduce((total, item) => total + item.quantity, 0),
-    cartSubtotal: state => state.items.reduce((total, item) => total + (item.product.basePrice * item.quantity), 0),
+    cartSubtotal: state => state.items.reduce((total, item) => total + ((item.product?.basePrice || item.price || 0) * item.quantity), 0),
     cartTax: (state, getters) => getters.cartSubtotal * state.taxRate,
     cartDiscount: (state, getters) => {
       if (!state.appliedPromo) return 0;

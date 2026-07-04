@@ -98,6 +98,9 @@
       </div>
     </div>
     
+    <!-- Reviews Section -->
+    <ProductReviews v-if="product" :productId="product._id || product.id" />
+    
     <div v-else class="text-center py-20">
       <h2 class="text-2xl font-bold text-gray-900">Product not found</h2>
       <button @click="$router.push('/')" class="mt-4 text-primary hover:underline">Return to shop</button>
@@ -110,6 +113,7 @@ import { computed, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useToast } from 'vue-toastification';
 import ProductService from '../../services/product.service';
+import ProductReviews from '../../components/shop/ProductReviews.vue';
 
 import { useStore } from 'vuex';
 

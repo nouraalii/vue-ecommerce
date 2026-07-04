@@ -23,6 +23,8 @@ const promoRoutes = require('./modules/orders/promo.route');
 const paymentRoutes = require('./modules/payments/payment.route');
 const userRoutes = require('./modules/users/user.route');
 const wishlistRoutes = require('./modules/wishlist/wishlist.route');
+const reviewRoutes = require('./modules/reviews/review.route');
+const cartRoutes = require('./modules/cart/cart.route');
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/products', productRoutes);
@@ -32,6 +34,8 @@ app.use('/api/v1/promos', promoRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/wishlist', wishlistRoutes);
+app.use('/api/v1/reviews', reviewRoutes);
+app.use('/api/v1/cart', cartRoutes);
 
 app.get('/', (req, res) => {
   res.send('API is running...');

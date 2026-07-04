@@ -4,6 +4,9 @@ const { protect, authorize } = require('../../middlewares/auth.middleware');
 
 const router = express.Router();
 
+const reviewRouter = require('../reviews/review.route');
+router.use('/:productId/reviews', reviewRouter);
+
 router.route('/')
   .get(getProducts)
   .post(protect, authorize('admin'), createProduct);

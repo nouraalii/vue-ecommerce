@@ -28,9 +28,9 @@
           <h4 class="text-lg font-bold mb-6 text-white">Quick Links</h4>
           <ul class="space-y-4 text-sm text-gray-400">
             <li><router-link to="/" class="hover:text-white transition-colors">Home</router-link></li>
-            <li><router-link to="/" class="hover:text-white transition-colors">Shop</router-link></li>
-            <li><router-link to="/" class="hover:text-white transition-colors">New Arrival</router-link></li>
-            <li><router-link to="/" class="hover:text-white transition-colors">Blog</router-link></li>
+            <li><router-link to="/shop" class="hover:text-white transition-colors">Shop</router-link></li>
+            <li><router-link to="/new-arrivals" class="hover:text-white transition-colors">New Arrival</router-link></li>
+            <li><router-link to="/blog" class="hover:text-white transition-colors">Blog</router-link></li>
           </ul>
         </div>
 

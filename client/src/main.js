@@ -30,6 +30,7 @@ app.use(Toast, {
 
 if (store.getters['auth/isLoggedIn']) {
   store.dispatch('wishlist/fetchWishlist').catch(() => {});
+  store.dispatch('cart/fetchCart').catch(() => {});
 }
 
 app.mount('#app');

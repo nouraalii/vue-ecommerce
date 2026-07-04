@@ -36,12 +36,12 @@
                 
                 <div class="flex items-center justify-between">
                   <div class="flex items-center border border-gray-200 rounded-full px-2 py-1 bg-gray-50">
-                    <button @click="updateQuantity(index, item.quantity - 1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-white rounded-full transition-colors font-bold text-lg">-</button>
+                    <button @click="updateQuantity(index, item, item.quantity - 1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-white rounded-full transition-colors font-bold text-lg">-</button>
                     <span class="w-8 text-center font-bold text-gray-900">{{ item.quantity }}</span>
-                    <button @click="updateQuantity(index, item.quantity + 1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-white rounded-full transition-colors font-bold text-lg">+</button>
+                    <button @click="updateQuantity(index, item, item.quantity + 1)" class="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-primary hover:bg-white rounded-full transition-colors font-bold text-lg">+</button>
                   </div>
 
-                  <button @click="removeItem(index)" type="button" class="flex items-center text-sm font-medium text-red-500 hover:text-red-700 transition-colors">
+                  <button @click="removeItem(index, item)" type="button" class="flex items-center text-sm font-medium text-red-500 hover:text-red-700 transition-colors">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     Remove
                   </button>
@@ -209,13 +209,13 @@ const removePromo = () => {
 };
 
 // Cart Logic
-const updateQuantity = (index, quantity) => {
+const updateQuantity = (index, item, quantity) => {
   if (quantity < 1) return;
-  store.dispatch('cart/updateItemQuantity', { index, quantity });
+  store.dispatch('cart/updateItemQuantity', { index, productId: item.product._id || item.product.id || item.product, quantity });
 };
 
-const removeItem = (index) => {
-  store.dispatch('cart/removeFromCart', index);
+const removeItem = (index, item) => {
+  store.dispatch('cart/removeFromCart', { index, productId: item.product._id || item.product.id || item.product });
 };
 
 const handleAddToCart = (product) => {

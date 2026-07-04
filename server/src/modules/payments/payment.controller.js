@@ -41,7 +41,7 @@ exports.createCheckoutSession = async (req, res) => {
     const { appliedDiscount, totalAmount } = computeTotals({ subTotal, taxPrice, shippingPrice, appliedPromo });
 
     const order = await Order.create({
-      customer: req.user.id,
+      customer: req.user._id,
       items: finalOrderItems,
       shippingAddress: mappedShippingAddress,
       paymentMethod: 'stripe',

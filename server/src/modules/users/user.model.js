@@ -26,7 +26,13 @@ const UserSchema = new mongoose.Schema({
   }],
 
   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
-  savedPaymentMethods: [{ /* Payment Method IDs */ }]
+  savedPaymentMethods: [{
+    cardHolder: String,
+    last4: String,
+    expiryMonth: Number,
+    expiryYear: Number,
+    brand: String
+  }]
 }, { timestamps: true });
 
 // Password hashing middleware

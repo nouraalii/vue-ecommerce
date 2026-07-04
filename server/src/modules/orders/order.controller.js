@@ -43,7 +43,7 @@ exports.createOrder = async (req, res) => {
 
     // 2. Create the order
     const order = new Order({
-      customer: req.user.id,
+      customer: req.user._id,
       items: finalOrderItems,
       shippingAddress: mappedShippingAddress,
       paymentMethod,
@@ -144,7 +144,7 @@ exports.updateOrderStatus = async (req, res) => {
 // @access  Private
 exports.getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ customer: req.user.id }).sort('-createdAt');
+    const orders = await Order.find({ customer: req.user._id }).sort('-createdAt');
     res.status(200).json({ success: true, count: orders.length, data: orders });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -163,7 +163,7 @@ exports.getOrderById = async (req, res) => {
     }
 
     // Check if user is authorized to view this order (customer who placed it or admin)
-    if (order.customer._id.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (order.customer._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Not authorized to view this order' });
     }
 

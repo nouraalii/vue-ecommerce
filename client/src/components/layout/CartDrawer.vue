@@ -51,13 +51,13 @@
                 </div>
                 <div class="flex flex-1 items-end justify-between text-sm">
                   <div class="flex items-center border border-gray-300 rounded-lg">
-                    <button @click="updateQuantity(index, item.quantity - 1)" class="px-2 py-1 text-gray-600 hover:text-primary">-</button>
+                    <button @click="updateQuantity(index, item, item.quantity - 1)" class="px-2 py-1 text-gray-600 hover:text-primary">-</button>
                     <span class="px-2 font-medium">{{ item.quantity }}</span>
-                    <button @click="updateQuantity(index, item.quantity + 1)" class="px-2 py-1 text-gray-600 hover:text-primary">+</button>
+                    <button @click="updateQuantity(index, item, item.quantity + 1)" class="px-2 py-1 text-gray-600 hover:text-primary">+</button>
                   </div>
 
                   <div class="flex">
-                    <button @click="removeItem(index)" type="button" class="font-medium text-red-500 hover:text-red-400">Remove</button>
+                    <button @click="removeItem(index, item)" type="button" class="font-medium text-red-500 hover:text-red-400">Remove</button>
                   </div>
                 </div>
               </div>
@@ -107,12 +107,12 @@ const closeDrawer = () => {
   store.dispatch('cart/closeDrawer');
 };
 
-const updateQuantity = (index, quantity) => {
-  store.dispatch('cart/updateItemQuantity', { index, quantity });
+const updateQuantity = (index, item, quantity) => {
+  store.dispatch('cart/updateItemQuantity', { index, productId: item.product._id || item.product.id || item.product, quantity });
 };
 
-const removeItem = (index) => {
-  store.dispatch('cart/removeFromCart', index);
+const removeItem = (index, item) => {
+  store.dispatch('cart/removeFromCart', { index, productId: item.product._id || item.product.id || item.product });
 };
 </script>
 

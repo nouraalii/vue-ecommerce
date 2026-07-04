@@ -33,6 +33,26 @@ class AuthService {
     const response = await api.get('/auth/me');
     return response.data;
   }
+
+  async updateProfile(data) {
+    const response = await api.put('/auth/me', data);
+    return response.data;
+  }
+
+  async getPaymentMethods() {
+    const response = await api.get('/auth/me/payment-methods');
+    return response.data;
+  }
+
+  async addPaymentMethod(data) {
+    const response = await api.post('/auth/me/payment-methods', data);
+    return response.data;
+  }
+
+  async removePaymentMethod(methodId) {
+    const response = await api.delete(`/auth/me/payment-methods/${methodId}`);
+    return response.data;
+  }
 }
 
 export default new AuthService();

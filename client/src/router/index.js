@@ -86,6 +86,11 @@ const routes = [
     name: 'Register',
     component: () => import('../views/auth/Register.vue'),
     meta: { guest: true }
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('../views/NotFound.vue')
   }
 ];
 

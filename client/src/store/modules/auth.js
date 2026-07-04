@@ -26,6 +26,7 @@ export const auth = {
         const data = await AuthService.login(user);
         commit('loginSuccess', data);
         dispatch('wishlist/fetchWishlist', null, { root: true }).catch(() => {});
+        await dispatch('cart/mergeCart', null, { root: true }).catch(() => {});
         return Promise.resolve(data);
       } catch (error) {
         commit('loginFailure');
@@ -34,15 +35,16 @@ export const auth = {
     },
     logout({ commit, dispatch }) {
       AuthService.logout();
+      commit('logout');
       dispatch('cart/clearCart', null, { root: true });
       dispatch('wishlist/clearWishlist', null, { root: true });
-      commit('logout');
     },
     async register({ commit, dispatch }, user) {
       try {
         const data = await AuthService.register(user);
         commit('registerSuccess', data);
         dispatch('wishlist/fetchWishlist', null, { root: true }).catch(() => {});
+        await dispatch('cart/mergeCart', null, { root: true }).catch(() => {});
         return Promise.resolve(data);
       } catch (error) {
         commit('registerFailure');
@@ -89,6 +91,11 @@ export const auth = {
       state.token = null;
       localStorage.removeItem('user');
       localStorage.removeItem('token');
+    },
+    SET_USER(state, user) {
+      const normalized = normalizeUser(user);
+      state.user = normalized;
+      localStorage.setItem('user', JSON.stringify(normalized));
     }
   },
   getters: {
