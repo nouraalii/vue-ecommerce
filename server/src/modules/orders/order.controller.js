@@ -1,49 +1,10 @@
 const Order = require('./order.model');
-const Product = require('../products/product.model');
-const Promo = require('./promo.model');
-
-const normalizePromoCode = code => String(code || '').trim().toUpperCase();
-
-const getPromoDetails = async code => {
-  const normalizedCode = normalizePromoCode(code);
-
-  if (!normalizedCode) return null;
-
-  if (normalizedCode === 'VUE20') {
-    return {
-      code: 'VUE20',
-      discountType: 'percentage',
-      discountValue: 20
-    };
-  }
-
-  const promo = await Promo.findOne({ code: normalizedCode });
-
-  if (!promo || !promo.isActive) return null;
-
-  if (promo.expiresAt && promo.expiresAt < new Date()) return null;
-
-  return {
-    code: promo.code,
-    discountType: 'percentage',
-    discountValue: promo.discountPercentage
-  };
-};
-
-const calculateDiscountAmount = (promo, subTotal = 0) => {
-  if (!promo) return 0;
-
-  if (promo.discountType === 'fixed_amount') {
-    return Math.min(Number(promo.discountValue) || 0, subTotal);
-  }
-
-  return Math.min(subTotal * ((Number(promo.discountValue) || 0) / 100), subTotal);
-};
-
-const buildPromoResponse = (promo, subTotal = 0) => ({
-  ...promo,
-  discountAmount: Number(calculateDiscountAmount(promo, subTotal).toFixed(2))
-});
+const {
+  getPromoDetails,
+  buildPromoResponse,
+  prepareOrderItems,
+  computeTotals
+} = require('./order.service');
 
 // @desc    Create new order
 // @route   POST /api/v1/orders
@@ -71,43 +32,14 @@ exports.createOrder = async (req, res) => {
       country: shippingAddress.country
     };
 
-    // 1. Calculate prices from DB to avoid client-side spoofing
-    let subTotal = 0;
-    const finalOrderItems = [];
-
-    for (const item of orderItems) {
-      const product = await Product.findById(item.product);
-      
-      if (!product) {
-        throw new Error(`Product not found: ${item.product}`);
-      }
-      if (product.stock < item.quantity) {
-        throw new Error(`Insufficient stock for ${product.title}`);
-      }
-
-      // Add to total
-      subTotal += product.basePrice * item.quantity;
-
-      // Prepare final order item
-      finalOrderItems.push({
-        product: product._id,
-        name: product.title,
-        quantity: item.quantity,
-        price: product.basePrice
-      });
-
-      // Decrement stock
-      product.stock -= item.quantity;
-      await product.save();
-    }
-
     const appliedPromo = await getPromoDetails(promoCode);
     if (promoCode && !appliedPromo) {
       return res.status(400).json({ success: false, message: 'Invalid or expired promo code' });
     }
 
-    const appliedDiscount = Number(calculateDiscountAmount(appliedPromo, subTotal).toFixed(2));
-    const totalAmount = subTotal + (taxPrice || 0) + (shippingPrice || 0) - appliedDiscount;
+    // 1. Calculate prices from DB to avoid client-side spoofing (also decrements stock)
+    const { finalOrderItems, subTotal } = await prepareOrderItems(orderItems);
+    const { appliedDiscount, totalAmount } = computeTotals({ subTotal, taxPrice, shippingPrice, appliedPromo });
 
     // 2. Create the order
     const order = new Order({

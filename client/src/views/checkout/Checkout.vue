@@ -89,6 +89,12 @@
                       Cash on Delivery
                     </label>
                   </div>
+                  <div class="flex items-center">
+                    <input id="payment-stripe" name="payment-method" type="radio" value="stripe" v-model="form.paymentMethod" class="focus:ring-primary h-4 w-4 text-primary border-gray-300" />
+                    <label for="payment-stripe" class="ml-3 block text-sm font-medium text-gray-700">
+                      Credit / Debit Card <span class="text-gray-400">(Stripe, secure checkout)</span>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -99,7 +105,7 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Place Order
+                {{ form.paymentMethod === 'stripe' ? 'Continue to Payment' : 'Place Order' }}
               </button>
             </div>
           </form>
@@ -172,6 +178,7 @@ import { useRouter } from 'vue-router';
 import { useToast } from 'vue-toastification';
 
 import OrderService from '../../services/order.service';
+import PaymentService from '../../services/payment.service';
 
 const store = useStore();
 const router = useRouter();
@@ -249,8 +256,16 @@ const placeOrder = async () => {
       promoCode: appliedPromo.value ? appliedPromo.value.code : null,
     };
 
+    if (form.paymentMethod === 'stripe') {
+      // Create the pending order + Stripe Checkout Session, then redirect to Stripe.
+      const response = await PaymentService.createCheckoutSession(orderData);
+      store.dispatch('cart/clearCart');
+      window.location.href = response.data.url;
+      return;
+    }
+
     const response = await OrderService.createOrder(orderData);
-    
+
     store.dispatch('cart/clearCart');
     toast.success('Order placed successfully!');
     router.push(`/order-success/${response.data._id}`);
