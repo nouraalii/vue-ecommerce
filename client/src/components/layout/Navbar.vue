@@ -9,9 +9,9 @@
           </router-link>
           <div class="hidden md:flex items-center space-x-8 ml-12 text-sm font-medium text-gray-600">
             <router-link to="/" class="hover:text-primary transition-colors">Home</router-link>
-            <router-link to="/" class="hover:text-primary transition-colors">Shop</router-link>
-            <router-link to="/" class="hover:text-primary transition-colors">New Arrival</router-link>
-            <router-link to="/" class="hover:text-primary transition-colors">Blog</router-link>
+            <router-link to="/shop" class="hover:text-primary transition-colors">Shop</router-link>
+            <router-link to="/new-arrivals" class="hover:text-primary transition-colors">New Arrival</router-link>
+            <router-link to="/blog" class="hover:text-primary transition-colors">Blog</router-link>
             <router-link v-if="isAdmin" to="/admin/dashboard" class="hover:text-primary transition-colors">Admin Dashboard</router-link>
             <router-link v-if="isCustomer" to="/customer/dashboard" class="hover:text-primary transition-colors">Customer Dashboard</router-link>
           </div>

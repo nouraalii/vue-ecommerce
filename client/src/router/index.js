@@ -8,6 +8,26 @@ const routes = [
     component: () => import('../views/shop/Home.vue'),
   },
   {
+    path: '/shop',
+    name: 'Shop',
+    component: () => import('../views/shop/Shop.vue'),
+  },
+  {
+    path: '/new-arrivals',
+    name: 'NewArrivals',
+    component: () => import('../views/shop/NewArrivals.vue'),
+  },
+  {
+    path: '/blog',
+    name: 'Blog',
+    component: () => import('../views/blog/Blog.vue'),
+  },
+  {
+    path: '/blog/:slug',
+    name: 'BlogPost',
+    component: () => import('../views/blog/BlogPost.vue'),
+  },
+  {
     path: '/product/:id',
     name: 'ProductDetail',
     component: () => import('../views/shop/ProductDetail.vue'),
