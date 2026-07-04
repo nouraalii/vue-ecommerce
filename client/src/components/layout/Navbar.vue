@@ -1,21 +1,29 @@
 <template>
-  <nav class="bg-background py-4 sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16 bg-white/50 backdrop-blur-md rounded-full px-8 shadow-sm border border-white/20">
-        <!-- Logo -->
-        <div class="flex items-center">
-          <router-link to="/" class="flex-shrink-0 flex items-center gap-2 text-primary font-extrabold text-2xl tracking-tight">
-            <span>coDoc</span>
-          </router-link>
-          <div class="hidden md:flex items-center space-x-8 ml-12 text-sm font-medium text-gray-600">
-            <router-link to="/" class="hover:text-primary transition-colors">Home</router-link>
-            <router-link to="/shop" class="hover:text-primary transition-colors">Shop</router-link>
-            <router-link to="/new-arrivals" class="hover:text-primary transition-colors">New Arrival</router-link>
-            <router-link to="/blog" class="hover:text-primary transition-colors">Blog</router-link>
-            <router-link v-if="isAdmin" to="/admin/dashboard" class="hover:text-primary transition-colors">Admin Dashboard</router-link>
-            <router-link v-if="isCustomer" to="/customer/dashboard" class="hover:text-primary transition-colors">Customer Dashboard</router-link>
+  <div>
+    <!-- Verification Alert Banner -->
+    <div v-if="isLoggedIn && !isEmailVerified" class="bg-indigo-600 text-white px-4 py-2.5 text-center text-sm font-semibold relative z-50 flex items-center justify-center gap-2 shadow-md">
+      <span class="inline-block w-2.5 h-2.5 bg-yellow-400 rounded-full animate-ping"></span>
+      <span>Your email is not verified! Confirm your account to access all features.</span>
+      <router-link :to="`/verify-email?email=${user?.email}`" class="underline hover:text-indigo-100 font-bold transition-colors">Verify Now &rarr;</router-link>
+    </div>
+    <nav class="bg-background py-4 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16 bg-white/50 backdrop-blur-md rounded-full px-8 shadow-sm border border-white/20">
+          <!-- Logo -->
+          <div class="flex items-center">
+            <router-link to="/" class="flex-shrink-0 flex items-center gap-2 text-primary font-extrabold text-2xl tracking-tight">
+              <span>coDoc</span>
+            </router-link>
+            <div class="hidden md:flex items-center space-x-8 ml-12 text-sm font-medium text-gray-600">
+              <router-link to="/" class="hover:text-primary transition-colors">Home</router-link>
+              <router-link to="/shop" class="hover:text-primary transition-colors">Shop</router-link>
+              <router-link to="/new-arrivals" class="hover:text-primary transition-colors">New Arrival</router-link>
+              <router-link to="/blog" class="hover:text-primary transition-colors">Blog</router-link>
+              <router-link v-if="isAdmin" to="/admin/dashboard" class="hover:text-primary transition-colors">Admin Dashboard</router-link>
+              <router-link v-if="isSeller" to="/seller/dashboard" class="hover:text-primary transition-colors">Seller Dashboard</router-link>
+              <router-link v-if="isCustomer" to="/customer/dashboard" class="hover:text-primary transition-colors">Customer Dashboard</router-link>
+            </div>
           </div>
-        </div>
 
         <!-- Right Side Nav -->
         <div class="flex items-center space-x-6">
@@ -65,6 +73,7 @@
                   <p class="text-xs text-gray-500 capitalize">{{ userRole }}</p>
                 </div>
                 <router-link v-if="isAdmin" to="/admin/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Admin Dashboard</router-link>
+                <router-link v-if="isSeller" to="/seller/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Seller Dashboard</router-link>
                 <router-link v-if="isCustomer" to="/customer/dashboard" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-primary">Customer Dashboard</router-link>
                 <a href="#" @click.prevent="handleLogout" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">Sign out</a>
               </div>
@@ -73,7 +82,8 @@
         </div>
       </div>
     </div>
-  </nav>
+    </nav>
+  </div>
 </template>
 
 <script setup>
@@ -88,7 +98,9 @@ const isLoggedIn = computed(() => store.getters['auth/isLoggedIn']);
 const user = computed(() => store.getters['auth/user']);
 const userRole = computed(() => store.getters['auth/role']);
 const isAdmin = computed(() => userRole.value === 'admin');
+const isSeller = computed(() => userRole.value === 'seller');
 const isCustomer = computed(() => userRole.value === 'customer');
+const isEmailVerified = computed(() => user.value ? user.value.isEmailVerified : false);
 const cartItemCount = computed(() => store.getters['cart/itemCount']);
 const wishlistCount = computed(() => store.getters['wishlist/wishlistCount']);
 

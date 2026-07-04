@@ -9,11 +9,11 @@ router.use('/:productId/reviews', reviewRouter);
 
 router.route('/')
   .get(getProducts)
-  .post(protect, authorize('admin'), createProduct);
+  .post(protect, authorize('admin', 'seller'), createProduct);
 
 router.route('/:id')
   .get(getProduct)
-  .put(protect, authorize('admin'), updateProduct)
-  .delete(protect, authorize('admin'), archiveProduct);
+  .put(protect, authorize('admin', 'seller'), updateProduct)
+  .delete(protect, authorize('admin', 'seller'), archiveProduct);
 
 module.exports = router;

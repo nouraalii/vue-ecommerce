@@ -91,17 +91,32 @@ exports.getProducts = async (req, res) => {
 
 // @desc    Update product
 // @route   PUT /api/v1/products/:id
-// @access  Private/Admin
+// @access  Private/Admin/Seller
 exports.updateProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    }).populate('category', 'name slug');
+    let product = await Product.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
+
+    // Seller ownership check
+    if (req.user.role === 'seller' && product.seller && product.seller.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to edit this product' });
+    }
+
+    if (req.user.role === 'seller') {
+      req.body.seller = req.user._id;
+      // Allow sellers to set to active directly for convenience, or default to pending
+      if (!req.body.status) {
+        req.body.status = 'active';
+      }
+    }
+
+    product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true
+    }).populate('category', 'name slug');
 
     res.status(200).json({ success: true, data: product });
   } catch (err) {
@@ -111,18 +126,22 @@ exports.updateProduct = async (req, res) => {
 
 // @desc    Archive product
 // @route   DELETE /api/v1/products/:id
-// @access  Private/Admin
+// @access  Private/Admin/Seller
 exports.archiveProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      { status: 'archived' },
-      { new: true, runValidators: true }
-    ).populate('category', 'name slug');
+    const product = await Product.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
+
+    // Seller ownership check
+    if (req.user.role === 'seller' && product.seller && product.seller.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: 'Not authorized to delete this product' });
+    }
+
+    product.status = 'archived';
+    await product.save();
 
     res.status(200).json({ success: true, data: product });
   } catch (err) {
@@ -149,9 +168,16 @@ exports.getProduct = async (req, res) => {
 
 // @desc    Create product
 // @route   POST /api/v1/products
-// @access  Private/Admin
+// @access  Private/Admin/Seller
 exports.createProduct = async (req, res) => {
   try {
+    if (req.user.role === 'seller') {
+      req.body.seller = req.user._id;
+      // Auto-approve seller products for standard demo or allow draft/active
+      if (!req.body.status) {
+        req.body.status = 'active';
+      }
+    }
     const product = await Product.create(req.body);
 
     res.status(201).json({ success: true, data: product });

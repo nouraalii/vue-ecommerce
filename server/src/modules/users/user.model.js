@@ -6,9 +6,24 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String }, // Optional if using Google OAuth
   googleId: { type: String },
-  role: { type: String, enum: ['customer', 'admin'], default: 'customer' },
+  role: { type: String, enum: ['customer', 'admin', 'seller'], default: 'customer' },
   phone: { type: String },
   isEmailVerified: { type: Boolean, default: false },
+  emailVerificationToken: { type: String },
+  emailVerificationExpires: { type: Date },
+  
+  // Seller Profile fields
+  sellerProfile: {
+    storeName: { type: String },
+    description: { type: String },
+    balance: { type: Number, default: 0 },
+    earnings: { type: Number, default: 0 },
+    payouts: [{
+      amount: { type: Number, required: true },
+      status: { type: String, enum: ['pending', 'completed'], default: 'pending' },
+      requestedAt: { type: Date, default: Date.now }
+    }]
+  },
   
   // Account Management
   accountStatus: { type: String, enum: ['active', 'restricted', 'deleted'], default: 'active' },
