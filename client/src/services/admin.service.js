@@ -80,6 +80,26 @@ class AdminService {
     const response = await api.put(`/orders/${id}/status`, statusData);
     return response.data;
   }
+
+  async getPromos() {
+    const response = await api.get('/promos');
+    return response.data;
+  }
+
+  async createPromo(promoData) {
+    const response = await api.post('/promos', promoData);
+    return response.data;
+  }
+
+  async updatePromo(id, promoData) {
+    const response = await api.put(`/promos/${id}`, promoData);
+    return response.data;
+  }
+
+  async deletePromo(id) {
+    const response = await api.delete(`/promos/${id}`);
+    return response.data;
+  }
 }
 
 export default new AdminService();

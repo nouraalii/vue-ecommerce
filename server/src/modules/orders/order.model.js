@@ -30,7 +30,7 @@ const OrderSchema = new mongoose.Schema({
     zipCode: String,
     country: String,
   },
-  paymentMethod: { type: String, enum: ['cod'], required: true },
+  paymentMethod: { type: String, enum: ['cod', 'stripe'], required: true },
   paymentStatus: { type: String, enum: ['pending', 'paid', 'failed', 'refunded'], default: 'pending' },
   paymentProviderRef: String, // Stripe PaymentIntent ID, PayPal order ID, etc.
 
