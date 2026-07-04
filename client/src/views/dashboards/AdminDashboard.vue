@@ -170,6 +170,60 @@
         </div>
       </section>
 
+      <section v-if="activeTab === 'promos'" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <form @submit.prevent="savePromo" class="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 space-y-4">
+          <h2 class="text-xl font-bold text-gray-900">{{ promoForm._id ? 'Edit Promo' : 'Create Promo' }}</h2>
+          <input v-model="promoForm.code" required placeholder="Code (e.g. SUMMER25)" class="input uppercase" />
+          <div>
+            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Discount %</label>
+            <input v-model.number="promoForm.discountPercentage" required type="number" min="1" max="100" placeholder="Discount %" class="input" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Expires (optional)</label>
+            <input v-model="promoForm.expiresAt" type="date" class="input" />
+          </div>
+          <label class="flex items-center gap-3 text-sm font-medium text-gray-700">
+            <input v-model="promoForm.isActive" type="checkbox" class="h-4 w-4 rounded text-primary focus:ring-primary" />
+            Active
+          </label>
+          <div class="flex gap-3">
+            <button type="submit" class="btn-primary">{{ promoForm._id ? 'Save Changes' : 'Create Promo' }}</button>
+            <button type="button" @click="resetPromoForm" class="btn-secondary">Clear</button>
+          </div>
+        </form>
+
+        <div class="lg:col-span-2 bg-white rounded-[2rem] border border-gray-100 shadow-sm overflow-hidden">
+          <div class="px-6 py-5 bg-surfaceAlt border-b border-gray-100">
+            <h2 class="text-xl font-bold text-gray-900">Promo Codes</h2>
+          </div>
+          <div v-if="promos.length === 0" class="px-6 py-12 text-center text-gray-500">
+            No promo codes yet. Create one to offer discounts at checkout.
+          </div>
+          <div v-else class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-100">
+              <tbody class="divide-y divide-gray-100">
+                <tr v-for="promo in promos" :key="promo._id">
+                  <td class="px-6 py-4">
+                    <p class="font-mono font-bold text-gray-900">{{ promo.code }}</p>
+                    <p class="text-sm text-gray-500">{{ formatPromoExpiry(promo.expiresAt) }}</p>
+                  </td>
+                  <td class="px-6 py-4 font-bold text-primary">{{ promo.discountPercentage }}% off</td>
+                  <td class="px-6 py-4">
+                    <span :class="promo.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'" class="px-3 py-1 rounded-full text-xs font-bold">
+                      {{ promo.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-right space-x-3">
+                    <button @click="editPromo(promo)" class="text-primary font-bold">Edit</button>
+                    <button @click="deletePromo(promo._id)" class="text-red-600 font-bold">Delete</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <section v-if="activeTab === 'orders'" class="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[2rem] overflow-hidden border border-gray-100">
         <div class="px-8 py-6 bg-surfaceAlt border-b border-gray-100">
           <h2 class="text-xl font-bold text-gray-900">Orders</h2>
@@ -271,6 +325,7 @@ const metrics = ref({ totalSales: 0, totalUsers: 0, totalProducts: 0, totalOrder
 const users = ref([]);
 const products = ref([]);
 const categories = ref([]);
+const promos = ref([]);
 const orders = ref([]);
 const activeTab = ref('users');
 const roleFilter = ref('');
@@ -280,6 +335,7 @@ const tabs = [
   { id: 'users', label: 'Users' },
   { id: 'products', label: 'Products' },
   { id: 'categories', label: 'Categories' },
+  { id: 'promos', label: 'Promos' },
   { id: 'orders', label: 'Orders' }
 ];
 
@@ -305,8 +361,17 @@ const emptyCategory = () => ({
   status: 'active'
 });
 
+const emptyPromo = () => ({
+  _id: '',
+  code: '',
+  discountPercentage: 10,
+  isActive: true,
+  expiresAt: ''
+});
+
 const productForm = reactive(emptyProduct());
 const categoryForm = reactive(emptyCategory());
+const promoForm = reactive(emptyPromo());
 const activeCategories = computed(() => categories.value.filter(category => (category.status || 'active') === 'active'));
 const currentUser = computed(() => store.getters['auth/user']);
 
@@ -325,17 +390,19 @@ const assignForm = (target, source) => {
 const fetchDashboardData = async () => {
   loading.value = true;
   try {
-    const [metricsRes, usersRes, productsRes, categoriesRes, ordersRes] = await Promise.all([
+    const [metricsRes, usersRes, productsRes, categoriesRes, promosRes, ordersRes] = await Promise.all([
       AdminService.getMetrics(),
       AdminService.getUsers({ role: roleFilter.value }),
       AdminService.getProducts({ status: 'all', limit: 200 }),
       AdminService.getCategories({ status: 'all' }),
+      AdminService.getPromos(),
       AdminService.getOrders()
     ]);
     metrics.value = metricsRes.data;
     users.value = usersRes.data;
     products.value = productsRes.data;
     categories.value = categoriesRes.data;
+    promos.value = promosRes.data;
     orders.value = ordersRes.data;
   } catch (error) {
     toast.error('Failed to load dashboard data');
@@ -476,6 +543,60 @@ const archiveCategory = async id => {
   } catch (error) {
     toast.error('Failed to archive category');
   }
+};
+
+const refreshPromos = async () => {
+  const response = await AdminService.getPromos();
+  promos.value = response.data;
+};
+
+const savePromo = async () => {
+  try {
+    const payload = {
+      code: promoForm.code,
+      discountPercentage: Number(promoForm.discountPercentage),
+      isActive: promoForm.isActive,
+      expiresAt: promoForm.expiresAt || null
+    };
+
+    if (promoForm._id) await AdminService.updatePromo(promoForm._id, payload);
+    else await AdminService.createPromo(payload);
+
+    toast.success('Promo saved');
+    resetPromoForm();
+    await refreshPromos();
+  } catch (error) {
+    toast.error(error.response?.data?.message || 'Failed to save promo');
+  }
+};
+
+const editPromo = promo => assignForm(promoForm, {
+  _id: promo._id,
+  code: promo.code,
+  discountPercentage: promo.discountPercentage,
+  isActive: promo.isActive,
+  expiresAt: promo.expiresAt ? promo.expiresAt.substring(0, 10) : ''
+});
+
+const resetPromoForm = () => assignForm(promoForm, emptyPromo());
+
+const deletePromo = async id => {
+  if (!confirm('Delete this promo code permanently?')) return;
+  try {
+    await AdminService.deletePromo(id);
+    toast.success('Promo deleted');
+    if (promoForm._id === id) resetPromoForm();
+    await refreshPromos();
+  } catch (error) {
+    toast.error(error.response?.data?.message || 'Failed to delete promo');
+  }
+};
+
+const formatPromoExpiry = expiresAt => {
+  if (!expiresAt) return 'No expiry';
+  const date = new Date(expiresAt);
+  const expired = date.getTime() < Date.now();
+  return `${expired ? 'Expired ' : 'Expires '}${date.toLocaleDateString()}`;
 };
 
 const updateOrder = async (order, statusData) => {
