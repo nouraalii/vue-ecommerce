@@ -26,6 +26,9 @@ const ProductSchema = new mongoose.Schema({
   status: { type: String, enum: ['draft', 'pending_approval', 'active', 'rejected', 'archived'], default: 'pending_approval' },
   tags: { type: [String], index: true }, // Index for tags search
 
+  // Seller reference
+  seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+
   // Denormalized stats
   averageRating: { type: Number, default: 0 },
   reviewCount: { type: Number, default: 0 }

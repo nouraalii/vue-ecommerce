@@ -42,7 +42,9 @@ const routes = [
     name: 'DashboardRedirect',
     redirect: () => {
       const role = store.getters['auth/role'];
-      return role === 'admin' ? '/admin/dashboard' : '/customer/dashboard';
+      if (role === 'admin') return '/admin/dashboard';
+      if (role === 'seller') return '/seller/dashboard';
+      return '/customer/dashboard';
     },
     meta: { requiresAuth: true }
   },
@@ -65,10 +67,21 @@ const routes = [
     meta: { requiresAuth: true, role: 'customer' }
   },
   {
+    path: '/seller/dashboard',
+    name: 'SellerDashboard',
+    component: () => import('../views/dashboards/SellerDashboard.vue'),
+    meta: { requiresAuth: true, role: 'seller' }
+  },
+  {
     path: '/admin/dashboard',
     name: 'AdminDashboard',
     component: () => import('../views/dashboards/AdminDashboard.vue'),
     meta: { requiresAuth: true, role: 'admin' }
+  },
+  {
+    path: '/verify-email',
+    name: 'VerifyEmail',
+    component: () => import('../views/auth/VerifyEmail.vue')
   },
   {
     path: '/wishlist',
@@ -102,13 +115,17 @@ const router = createRouter({
 router.beforeEach((to) => {
   const isLoggedIn = store.getters['auth/isLoggedIn'];
   const userRole = store.getters['auth/role'];
-  const dashboardForRole = role => role === 'admin' ? '/admin/dashboard' : '/customer/dashboard';
+  const dashboardForRole = role => {
+    if (role === 'admin') return '/admin/dashboard';
+    if (role === 'seller') return '/seller/dashboard';
+    return '/customer/dashboard';
+  };
 
   if (to.meta.requiresAuth && !isLoggedIn) {
     return '/login';
   }
 
-  if (isLoggedIn && !['customer', 'admin'].includes(userRole)) {
+  if (isLoggedIn && !['customer', 'admin', 'seller'].includes(userRole)) {
     store.dispatch('auth/logout');
     return '/login';
   }
