@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "start": "node server.js",
     "migrate:single-store": "node migrations/single-store.js",
     "seed": "node seed-products.js",
     "test": "echo \"Error: no test specified\" && exit 1"

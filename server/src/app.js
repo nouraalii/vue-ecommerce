@@ -3,7 +3,22 @@ const cors = require('cors');
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
+  credentials: true,
+}));
 
 // Stripe webhook must receive the raw request body for signature verification,
 // so it is mounted BEFORE the JSON body parser below.
